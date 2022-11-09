@@ -1,4 +1,4 @@
 .DS_Store
-compiler/target
-compiler/target/
-compiler/target/*.DS_Store
+linear/target
+linear/target/
+linear/target/*.DS_Store
