@@ -2,3 +2,7 @@
 linear/target
 linear/target/
 linear/target/*.DS_Store
+
+buddy/target
+buddy/target/
+buddy/target/*.DS_Store
