@@ -1,7 +1,7 @@
 fn main() {
     let mut m = Block::new();
+    dbg!(&m);
     m.store_str("Hejsan".to_string());
-    m.store_str("   ".to_string());
     dbg!(&m);
 }
 
