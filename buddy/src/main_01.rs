@@ -1,8 +1,9 @@
 fn main() {
     let mut m = Block::new();
-    m.store_str("Hejsan".to_string());
-    m.store_str("   ".to_string());
-    dbg!(&m);
+    // m.store_str("Hejsan".to_string());
+    // m.store_str("   ".to_string());
+    // dbg!(&m);
+    let my_str = m.str("Hej".to_string());
 }
 
 #[derive(Debug, Clone)]
@@ -40,12 +41,20 @@ impl Block {
             }
         }
     }
-    fn store_str(&mut self, s: String) {
-        let buf = s.as_bytes();
-        self._store_buf(buf).unwrap();
+
+    fn str(&mut self, s: String) -> MemRef {
+        match self.store_str(s) {
+            Ok(mr) => mr,
+            Err(e) => panic!("{}", e)
+        }
     }
 
-    fn _store_buf(&mut self, buf: &[u8]) -> Result<(), String> {
+    fn store_str(&mut self, s: String) -> Result<MemRef, String> {
+        let buf = s.as_bytes();
+        self._store_buf(buf)
+    }
+
+    fn _store_buf(&mut self, buf: &[u8]) -> Result<MemRef, String> {
         if buf.len() + 1 > self.size as usize {
             panic!("not enough space!");
         } else {
@@ -54,16 +63,16 @@ impl Block {
                     if buf.len() + 1 > self.size as usize / 2 {
                         if c[0].is_free() {
                             let mut m = Memory::new(self.size);
-                            m.store(buf).unwrap();
+                            let mem_ref = m.store(buf).unwrap();
                             self.content = Content::Memory(m);
-                            Ok(())
+                            Ok(mem_ref)
                         } else {
                             Err("not enough space".to_string())
                         }
                     } else {
                         match c[0]._store_buf(buf) {
-                            Err(_) => c[1]._store_buf(buf),
-                            Ok(()) => return Ok(())
+                            Err(e) => c[1]._store_buf(buf),
+                            Ok(mr) => return Ok(mr)
                         }
                     }
                 },
@@ -72,6 +81,18 @@ impl Block {
                 }
             }
         }
+        // match &mut self.content {
+        //     Content::Memory(m) => {
+        //         if buf.len() > m.memory.len() {
+        //             panic!("not enough space");
+        //         } else {
+        //             m.store(buf);
+        //         }
+        //     },
+        //     Content::Children(c) => {
+                
+        //     }
+        // }
     }
 
     fn is_free(&self) -> bool {
@@ -98,17 +119,18 @@ impl Memory {
     fn new(size: u32) -> Memory {
         Memory { pointer: 0, memory: vec![RegContent::Byte(0); size as usize] }
     }
-    fn store(&mut self, buf: &[u8]) -> Result<(), String> {
+    fn store(&mut self, buf: &[u8]) -> Result<MemRef, String> {
         if self.pointer + buf.len() + 1 > self.memory.len() {
             Err("not enough space!".to_string())
         } else {
+            let address = self.pointer;
             self.memory[self.pointer] = RegContent::Reserved(buf.len() as u32);
             self.pointer+=1;
             for i in 0..buf.len() {
                 self.memory[self.pointer + i] = RegContent::Byte(buf[i])
             }
             self.pointer+=buf.len();
-            Ok(())
+            Ok(MemRef { reference: &self, address: address })
         }
     }
 }
@@ -118,4 +140,10 @@ impl Memory {
 enum RegContent {
     Byte(u8),
     Reserved(u32)
+}
+
+
+struct MemRef<'a> {
+    reference: &'a Memory,
+    address: usize
 }
