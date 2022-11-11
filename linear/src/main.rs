@@ -49,7 +49,7 @@ impl Memory {
         }
         return m;
     }
-    fn new(size: i32) -> Memory {
+    fn new(size: u32) -> Memory {
         Memory {
             pointer: 0,
             memory: {
