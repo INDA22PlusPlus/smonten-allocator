@@ -6,3 +6,7 @@ linear/target/*.DS_Store
 buddy/target
 buddy/target/
 buddy/target/*.DS_Store
+
+arena/target
+arena/target/
+arena/target/*.DS_Store
